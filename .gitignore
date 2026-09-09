@@ -23,3 +23,9 @@ npm-debug.log*
 
 # Logs
 *.log
+
+# Scripts & temporary files
+*.ps1
+check_dims.ps1
+Thumbs.db
+

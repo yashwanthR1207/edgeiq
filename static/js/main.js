@@ -29,34 +29,185 @@ gsap.ticker.add((time)=>{
 });
 gsap.ticker.lagSmoothing(0);
 
-// Navbar opacity on scroll
-const navbar = document.getElementById('navbar');
-window.addEventListener('scroll', () => {
-    if (window.scrollY > 50) {
-        navbar.classList.add('bg-brand-offWhite/80', 'backdrop-blur-md');
-        navbar.classList.remove('bg-transparent');
-    } else {
-        navbar.classList.add('bg-transparent');
-        navbar.classList.remove('bg-brand-offWhite/80', 'backdrop-blur-md');
+
+
+// --- Overview Frame Sequence & Lock ScrollFlow ---
+const frameCount = 58;
+const overviewFrames = [];
+const frameSequence = { frame: 0 };
+let currentRenderedFrame = -1;
+
+const canvas = document.getElementById('overview-canvas');
+const ctx = canvas ? canvas.getContext('2d') : null;
+const fallbackImg = document.getElementById('overview-fallback-img');
+
+function getFrameUrl(index) {
+    const padded = String(index).padStart(2, '0');
+    return `/public/overview_hd/frame_${padded}.png`;
+}
+
+function renderFrame(index) {
+    if (!canvas || !ctx) return;
+    const idx = Math.min(frameCount - 1, Math.max(0, index));
+    currentRenderedFrame = idx;
+
+    let img = overviewFrames[idx];
+    // If target frame isn't loaded yet, pick the closest loaded frame for zero flicker
+    if (!img || !img.complete || img.naturalWidth === 0) {
+        for (let d = 1; d < frameCount; d++) {
+            if (idx - d >= 0 && overviewFrames[idx - d]?.complete && overviewFrames[idx - d].naturalWidth > 0) {
+                img = overviewFrames[idx - d];
+                break;
+            }
+            if (idx + d < frameCount && overviewFrames[idx + d]?.complete && overviewFrames[idx + d].naturalWidth > 0) {
+                img = overviewFrames[idx + d];
+                break;
+            }
+        }
+    }
+
+    if (!img || !img.complete || img.naturalWidth === 0) return;
+
+    // High resolution backing store (true 2K / retina crispness)
+    const dpr = Math.max(window.devicePixelRatio || 1, 2);
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+
+    const targetW = Math.round(rect.width * dpr);
+    const targetH = Math.round(rect.height * dpr);
+    if (canvas.width !== targetW || canvas.height !== targetH) {
+        canvas.width = targetW;
+        canvas.height = targetH;
+    }
+
+    ctx.save();
+    ctx.scale(dpr, dpr);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, rect.width, rect.height);
+
+    const scale = Math.min(rect.width / img.naturalWidth, rect.height / img.naturalHeight);
+    const x = (rect.width - img.naturalWidth * scale) / 2;
+    const y = (rect.height - img.naturalHeight * scale) / 2;
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, x, y, img.naturalWidth * scale, img.naturalHeight * scale);
+    ctx.restore();
+
+    if (fallbackImg && fallbackImg.style.opacity !== '0') {
+        fallbackImg.style.opacity = '0';
+    }
+}
+
+// Preload frames in memory
+for (let i = 0; i < frameCount; i++) {
+    const img = new Image();
+    img.src = getFrameUrl(i);
+    img.onload = () => {
+        if (i === 0 && currentRenderedFrame === -1) {
+            renderFrame(0);
+        }
+    };
+    overviewFrames.push(img);
+}
+
+if (overviewFrames[0] && overviewFrames[0].complete) {
+    renderFrame(0);
+}
+
+window.addEventListener('resize', () => {
+    if (currentRenderedFrame >= 0) {
+        renderFrame(currentRenderedFrame);
     }
 });
 
+// --- Smooth Frame Interpolation & Pacing Engine ---
+let targetFrame = 0;
+let displayedFrame = 0;
+
+function tickFrames() {
+    const diff = targetFrame - displayedFrame;
+    if (Math.abs(diff) > 0.005) {
+        // Controlled frame catch-up: ensures every frame displays with a tactile delay
+        displayedFrame += diff * 0.12;
+        const idx = Math.min(frameCount - 1, Math.max(0, Math.round(displayedFrame)));
+        if (idx !== currentRenderedFrame) {
+            renderFrame(idx);
+        }
+    }
+    requestAnimationFrame(tickFrames);
+}
+requestAnimationFrame(tickFrames);
+
 // Animations
 
-// 1. Hero Animation
+// 1. Hero Animation & Locked Frame Sequence
 const heroTl = gsap.timeline({
     scrollTrigger: {
         trigger: ".hero-section",
         start: "top top",
-        end: "bottom top",
-        scrub: 1,
-        pin: true
+        end: "+=4600", // Generous scroll runway so frames have plenty of travel distance and dwell time
+        scrub: 1.2,    // Smooth inertia
+        pin: true,
+        anticipatePin: 1
     }
 });
-heroTl.to(".hero-title", { scale: 0.8, opacity: 0, y: -50 }, 0)
-      .to(".hero-subtitle", { opacity: 0, y: -30 }, 0.1)
-      .to(".hero-desc, .hero-buttons, .hero-eyebrow", { opacity: 0 }, 0.1)
-      .to(".hero-visual", { scale: 1.1, y: -100 }, 0);
+
+// Phase 1 (0.00 -> 0.10): Hero text fades out, visual box rises into locked position
+heroTl.to(".hero-content", {
+    opacity: 0,
+    y: -40,
+    scale: 0.95,
+    ease: "power1.inOut",
+    duration: 0.10,
+    onUpdate: function() {
+        const hc = document.querySelector('.hero-content');
+        if (hc) hc.style.pointerEvents = this.progress() > 0.5 ? 'none' : 'auto';
+    }
+}, 0);
+
+heroTl.fromTo(".hero-visual", 
+    { opacity: 0, y: 120, scale: 0.92 }, 
+    { opacity: 1, y: 0, scale: 1, ease: "power1.out", duration: 0.10 }, 
+    0
+);
+
+// Phase 2 (0.10 -> 0.20): Initial hold delay - box is locked at Frame 0 so user can see it at rest
+
+// Phase 3 (0.20 -> 0.85): The box remains firmly locked while frames scrub smoothly with frame delay
+heroTl.to(frameSequence, {
+    frame: frameCount - 1,
+    ease: "none",
+    duration: 0.65,
+    onUpdate: function() {
+        targetFrame = Math.min(frameCount - 1, Math.max(0, frameSequence.frame));
+    }
+}, 0.20);
+
+// Phase 4 (0.85 -> 0.96): Final hold delay - holds the final frame locked in place before release
+
+// Phase 5 (0.96 -> 1.00): Settle on last frame before releasing lock to next section
+heroTl.to(".hero-visual", {
+    scale: 0.98,
+    opacity: 0.95,
+    ease: "power1.in",
+    duration: 0.04
+}, 0.96);
+
+// Quick reverse scroll accelerator: When scrolling UP in the hero sequence, quickly glide back to top
+window.addEventListener('wheel', (e) => {
+    const heroST = heroTl.scrollTrigger;
+    if (!heroST) return;
+    // When user scrolls UP (deltaY < 0) within or approaching the pinned hero section
+    if (e.deltaY < 0 && window.scrollY > 0 && window.scrollY <= heroST.end + 80) {
+        const target = Math.max(0, lenis.scroll + e.deltaY * 3.2);
+        lenis.scrollTo(target, {
+            duration: 0.35,
+            immediate: false,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
+        });
+    }
+}, { passive: true });
 
 // 2. Opening Statement
 const statementTl = gsap.timeline({
