@@ -9,7 +9,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.png') }}">
@@ -21,7 +21,7 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
                     },
                     colors: {
                         brand: {
@@ -42,7 +42,7 @@
     </script>
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" onerror="this.onerror=null; this.href='/public/static/css/style.css';">
 </head>
 <body class="bg-brand-offWhite text-brand-graphite font-sans antialiased overflow-x-hidden selection:bg-brand-gray selection:text-white">
 
@@ -52,123 +52,129 @@
         <div id="smooth-content">
 
             <!-- 3. HERO SECTION -->
-            <section id="overview" class="relative min-h-screen flex flex-col items-center justify-center pt-20 pb-32 px-4 overflow-hidden bg-brand-white hero-section">
-                <div class="text-center z-10 max-w-4xl mx-auto hero-content">
-                    <h1 class="hero-title flex justify-center items-center">
-                        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="EDGE IQ" class="h-16 sm:h-24 md:h-32 lg:h-36 w-auto object-contain max-w-[85vw] mx-auto select-none">
-                    </h1>
+            <section id="overview" class="relative h-screen w-full flex items-center justify-center overflow-hidden bg-brand-white hero-section">
+                <!-- EDGE IQ LOGO & STATEMENT (Starts centered, glides to right on scroll, logo moves up & shrinks as sentence reveals) -->
+                <div class="hero-content absolute inset-0 flex items-center justify-center pointer-events-none z-10 px-4 sm:px-6">
+                    <div class="hero-brand-wrap pointer-events-auto flex flex-col items-center text-center max-w-lg md:max-w-xl">
+                        <h1 class="hero-title flex justify-center items-center">
+                            <img id="hero-logo-img"
+                                 src="{{ url_for('static', filename='images/logo.png') }}"
+                                 onerror="if (!this._retried) { this._retried = 1; this.src = '/public/images/logo.png'; } else if (this._retried === 1) { this._retried = 2; this.src = '/logo.png'; }"
+                                 alt="EDGE IQ"
+                                 class="h-12 sm:h-16 md:h-20 lg:h-24 xl:h-28 w-auto object-contain max-w-[70vw] select-none transform origin-center will-change-transform">
+                        </h1>
+
+                        <!-- Sentence block below the logo in the rotated device frame -->
+                        <div class="hero-statement opacity-0 translate-y-6 mt-6 sm:mt-8 space-y-2 select-none pointer-events-none will-change-[opacity,transform]">
+                            <p class="hero-stmt-1 text-lg sm:text-xl md:text-2xl font-medium text-[#3A3A3C] tracking-tight leading-snug">
+                                Retail doesn't need more data.
+                            </p>
+                            <h2 class="hero-stmt-2 text-2xl sm:text-3xl md:text-4xl font-extrabold text-brand-black tracking-tight leading-snug">
+                                It needs intelligence.
+                            </h2>
+                            <p class="hero-stmt-3 text-base sm:text-lg md:text-xl font-medium text-[#3A3A3C] tracking-tight leading-snug">
+                                At the place where decisions happen.
+                            </p>
+                        </div>
+                    </div>
                 </div>
                 
-                <!-- 3.1 HERO VISUAL (LOCKED SEQUENCE SHOWCASE) -->
-                <div class="hero-visual absolute inset-0 flex flex-col items-center justify-center p-4 sm:p-6 pointer-events-none z-20 opacity-0 translate-y-28 transition-transform">
-                    <div class="w-full max-w-4xl lg:max-w-5xl relative flex flex-col pointer-events-auto">
+                <!-- 3.1 HERO VISUAL (3D DEVICE BOX - Moves to left on scroll) -->
+                <div class="hero-visual absolute inset-0 flex items-center justify-center pointer-events-none z-20 opacity-0">
+                    <div class="w-full max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl relative flex flex-col pointer-events-auto px-4">
                         <!-- Screen / Canvas Container (16:9 Aspect Ratio) -->
                         <div class="relative w-full aspect-video bg-transparent flex items-center justify-center">
                             <!-- Canvas for smooth 60fps frame rendering -->
                             <canvas id="overview-canvas" class="w-full h-full object-contain block relative z-10"></canvas>
                             
                             <!-- Immediate fallback image while JS initializes -->
-                            <img id="overview-fallback-img" src="/public/overview_hd/frame_00.png" alt="EDGE IQ Overview" class="absolute inset-0 w-full h-full object-contain pointer-events-none z-0">
+                            <img id="overview-fallback-img" src="/public/overview_hd/frame_00.png"
+                                 onerror="this.onerror=null; this.src='/overview_hd/frame_00.png';"
+                                 alt="EDGE IQ Overview"
+                                 class="absolute inset-0 w-full h-full object-contain pointer-events-none z-0">
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- 4. OPENING STATEMENT -->
-            <section class="min-h-[150vh] bg-brand-graphite text-brand-white flex flex-col justify-center items-center py-32 px-4 relative statement-section">
-                <div class="sticky top-1/2 -translate-y-1/2 text-center max-w-5xl w-full">
-                    <h2 class="text-4xl md:text-7xl font-bold tracking-tight statement-text statement-1 opacity-100 absolute w-full left-0">Retail doesn't need more data.</h2>
-                    <h2 class="text-4xl md:text-7xl font-bold tracking-tight statement-text statement-2 opacity-0 absolute w-full left-0">It needs intelligence.</h2>
-                    <h2 class="text-4xl md:text-7xl font-bold tracking-tight statement-text statement-3 opacity-0 absolute w-full left-0">At the place where decisions happen.</h2>
-                </div>
-            </section>
 
-            <!-- 5. THE PROBLEM -->
-            <section class="min-h-screen py-32 px-4 bg-brand-white problem-section overflow-hidden">
-                <div class="max-w-7xl mx-auto text-center mb-24 relative z-10">
-                    <h2 class="text-4xl md:text-6xl font-bold tracking-tight text-brand-black problem-title">Physical retail is full of signals.</h2>
-                </div>
-                
-                <div class="relative h-[40vh] max-w-5xl mx-auto mb-24 signals-container flex items-center justify-center">
-                    <div class="absolute w-full flex flex-wrap justify-center gap-4 md:gap-8 signals-list">
-                        <span class="px-4 py-2 border border-brand-lightGray rounded-full text-brand-gray signal-item">CCTV</span>
-                        <span class="px-4 py-2 border border-brand-lightGray rounded-full text-brand-gray signal-item">POS</span>
-                        <span class="px-4 py-2 border border-brand-lightGray rounded-full text-brand-gray signal-item">Barcode</span>
-                        <span class="px-4 py-2 border border-brand-lightGray rounded-full text-brand-gray signal-item">RFID</span>
-                        <span class="px-4 py-2 border border-brand-lightGray rounded-full text-brand-gray signal-item">IoT</span>
-                        <span class="px-4 py-2 border border-brand-lightGray rounded-full text-brand-gray signal-item">Customers</span>
-                        <span class="px-4 py-2 border border-brand-lightGray rounded-full text-brand-gray signal-item">Smart Trolleys</span>
-                        <span class="px-4 py-2 border border-brand-lightGray rounded-full text-brand-gray signal-item">Inventory</span>
-                        <span class="px-4 py-2 border border-brand-lightGray rounded-full text-brand-gray signal-item">Checkout</span>
-                    </div>
-                </div>
 
-                <div class="max-w-5xl mx-auto text-center problem-reveal">
-                    <h3 class="text-3xl md:text-5xl font-semibold tracking-tight text-brand-graphite mb-16 problem-subtitle">But fragmented systems create fragmented decisions.</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 text-left text-brand-gray text-xl problem-list">
-                        <div class="problem-item opacity-0 transform translate-y-4">Stock-outs</div>
-                        <div class="problem-item opacity-0 transform translate-y-4">Shelf gaps</div>
-                        <div class="problem-item opacity-0 transform translate-y-4">Long checkout queues</div>
-                        <div class="problem-item opacity-0 transform translate-y-4">Inventory mismatch</div>
-                        <div class="problem-item opacity-0 transform translate-y-4">Staff inefficiency</div>
-                        <div class="problem-item opacity-0 transform translate-y-4">Connectivity dependence</div>
-                        <div class="problem-item opacity-0 transform translate-y-4">Limited personalization</div>
-                        <div class="problem-item opacity-0 transform translate-y-4">Product wastage</div>
-                    </div>
-                </div>
-            </section>
 
-            <!-- 6. THE CORE IDEA -->
-            <section class="min-h-[200vh] bg-brand-offWhite relative core-loop-section py-32">
-                 <div class="sticky top-1/3 text-center px-4">
-                     <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 lg:gap-12 text-3xl md:text-4xl lg:text-5xl font-bold text-brand-lightGray tracking-tighter loop-words">
-                         <div class="loop-word relative">Capture.<div class="absolute -right-6 top-1/2 -translate-y-1/2 hidden md:block text-brand-lightGray arrow">→</div></div>
-                         <div class="loop-word relative">Analyze locally.<div class="absolute -right-6 top-1/2 -translate-y-1/2 hidden md:block text-brand-lightGray arrow">→</div></div>
-                         <div class="loop-word relative">Understand.<div class="absolute -right-6 top-1/2 -translate-y-1/2 hidden md:block text-brand-lightGray arrow">→</div></div>
-                         <div class="loop-word relative">Decide.<div class="absolute -right-6 top-1/2 -translate-y-1/2 hidden md:block text-brand-lightGray arrow">→</div></div>
-                         <div class="loop-word relative">Act.<div class="absolute -right-6 top-1/2 -translate-y-1/2 hidden md:block text-brand-lightGray arrow">→</div></div>
-                         <div class="loop-word">Measure.</div>
-                     </div>
-                 </div>
-            </section>
 
 
             <!-- 7. EDGE IQ ARCHITECTURE -->
-            <section id="architecture-deepdive" class="min-h-screen py-32 px-4 bg-brand-white">
-                <div class="max-w-7xl mx-auto text-center mb-24">
-                    <h2 class="text-4xl md:text-6xl font-bold tracking-tight text-brand-black">Intelligence, from the store floor up.</h2>
-                </div>
-                
-                <div class="max-w-4xl mx-auto relative architecture-stack flex flex-col items-center gap-2 cursor-pointer">
-                    <!-- Layer 6 -->
-                    <div class="w-full bg-brand-offWhite border border-brand-lightGray rounded-xl p-6 text-center hover:bg-brand-white transition-all layer-card" data-layer="6">
-                        <p class="text-xs font-semibold text-brand-gray tracking-widest mb-2">06 — OPTIONAL CLOUD</p>
-                        <h4 class="text-lg font-medium">Multi-store Synchronization • Centralized Analytics</h4>
-                    </div>
-                    <!-- Layer 5 -->
-                    <div class="w-full bg-brand-lightGray/30 border border-brand-lightGray rounded-xl p-6 text-center hover:bg-brand-white transition-all layer-card" data-layer="5">
-                        <p class="text-xs font-semibold text-brand-gray tracking-widest mb-2">05 — RETAIL OPERATIONS</p>
-                        <h4 class="text-lg font-medium">Inventory • POS • Marketing • Customer Assistance</h4>
-                    </div>
-                    <!-- Layer 4 -->
-                    <div class="w-full bg-brand-gray/10 border border-brand-gray/30 rounded-xl p-6 text-center hover:bg-brand-white transition-all layer-card" data-layer="4">
-                        <p class="text-xs font-semibold text-brand-graphite tracking-widest mb-2">04 — EDGE ERP</p>
-                        <h4 class="text-lg font-medium">Inventory • Staff Operations • POS Integration • Alerts • Retail KPIs</h4>
-                    </div>
-                    <!-- Layer 3 -->
-                    <div class="w-full bg-brand-black text-white rounded-xl p-8 text-center transform scale-105 shadow-2xl z-10 layer-card" data-layer="3">
-                        <p class="text-xs font-semibold text-brand-gray tracking-widest mb-2">03 — EDGE AI SERVER</p>
-                        <h4 class="text-xl font-medium">Local AI Models • Computer Vision • Event Processing • Recommendations • Device Orchestration</h4>
-                    </div>
-                    <!-- Layer 2 -->
-                    <div class="w-full bg-brand-offWhite border border-brand-lightGray rounded-xl p-6 text-center hover:bg-brand-white transition-all layer-card" data-layer="2">
-                        <p class="text-xs font-semibold text-brand-gray tracking-widest mb-2">02 — IoT & SENSOR LAYER</p>
-                        <h4 class="text-lg font-medium">CCTV • ESP32 • Barcode • RFID • Retail Sensors</h4>
-                    </div>
+            <section id="architecture-deepdive" class="min-h-screen py-24 sm:py-32 px-4 bg-brand-white flex flex-col items-center justify-center">
+                <div class="max-w-4xl w-full mx-auto relative architecture-stack flex flex-col items-center gap-3 sm:gap-4">
                     <!-- Layer 1 -->
-                    <div class="w-full bg-brand-white border border-brand-lightGray rounded-xl p-6 text-center hover:bg-brand-offWhite transition-all layer-card" data-layer="1">
-                        <p class="text-xs font-semibold text-brand-gray tracking-widest mb-2">01 — CUSTOMER INTERACTION</p>
-                        <h4 class="text-lg font-medium">QR Shopping • Smart Trolley • Web</h4>
+                    <div class="w-full layer-card" data-layer="1">
+                        <div class="group w-full bg-[#F5F5F7] hover:bg-[#1D1D1F] border border-[#E5E5EA] hover:border-[#1D1D1F] rounded-2xl p-5 sm:p-6 text-center transition-all duration-300 ease-out hover:scale-[1.025] hover:shadow-xl cursor-pointer">
+                            <h4 class="text-base sm:text-lg font-bold tracking-tight text-brand-graphite group-hover:text-white transition-colors duration-200">
+                                01 — CUSTOMER INTERACTION
+                            </h4>
+                            <p class="max-h-0 opacity-0 overflow-hidden group-hover:max-h-24 group-hover:opacity-100 group-hover:mt-2 text-sm text-brand-gray group-hover:text-brand-lightGray transition-all duration-300 ease-out font-medium">
+                                QR Shopping • Smart Trolley • Web
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Layer 2 -->
+                    <div class="w-full layer-card" data-layer="2">
+                        <div class="group w-full bg-[#F5F5F7] hover:bg-[#1D1D1F] border border-[#E5E5EA] hover:border-[#1D1D1F] rounded-2xl p-5 sm:p-6 text-center transition-all duration-300 ease-out hover:scale-[1.025] hover:shadow-xl cursor-pointer">
+                            <h4 class="text-base sm:text-lg font-bold tracking-tight text-brand-graphite group-hover:text-white transition-colors duration-200">
+                                02 — IoT & SENSOR LAYER
+                            </h4>
+                            <p class="max-h-0 opacity-0 overflow-hidden group-hover:max-h-24 group-hover:opacity-100 group-hover:mt-2 text-sm text-brand-gray group-hover:text-brand-lightGray transition-all duration-300 ease-out font-medium">
+                                CCTV • ESP32 • Barcode • RFID • Retail Sensors
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Layer 3 -->
+                    <div class="w-full layer-card" data-layer="3">
+                        <div class="group w-full bg-[#F5F5F7] hover:bg-[#1D1D1F] border border-[#E5E5EA] hover:border-[#1D1D1F] rounded-2xl p-5 sm:p-6 text-center transition-all duration-300 ease-out hover:scale-[1.025] hover:shadow-xl cursor-pointer">
+                            <h4 class="text-base sm:text-lg font-bold tracking-tight text-brand-graphite group-hover:text-white transition-colors duration-200">
+                                03 — EDGE AI SERVER
+                            </h4>
+                            <p class="max-h-0 opacity-0 overflow-hidden group-hover:max-h-24 group-hover:opacity-100 group-hover:mt-2 text-sm text-brand-gray group-hover:text-brand-lightGray transition-all duration-300 ease-out font-medium">
+                                Local AI Models • Computer Vision • Event Processing • Recommendations • Device Orchestration
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Layer 4 -->
+                    <div class="w-full layer-card" data-layer="4">
+                        <div class="group w-full bg-[#F5F5F7] hover:bg-[#1D1D1F] border border-[#E5E5EA] hover:border-[#1D1D1F] rounded-2xl p-5 sm:p-6 text-center transition-all duration-300 ease-out hover:scale-[1.025] hover:shadow-xl cursor-pointer">
+                            <h4 class="text-base sm:text-lg font-bold tracking-tight text-brand-graphite group-hover:text-white transition-colors duration-200">
+                                04 — EDGE ERP
+                            </h4>
+                            <p class="max-h-0 opacity-0 overflow-hidden group-hover:max-h-24 group-hover:opacity-100 group-hover:mt-2 text-sm text-brand-gray group-hover:text-brand-lightGray transition-all duration-300 ease-out font-medium">
+                                Inventory • Staff Operations • POS Integration • Alerts • Retail KPIs
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Layer 5 -->
+                    <div class="w-full layer-card" data-layer="5">
+                        <div class="group w-full bg-[#F5F5F7] hover:bg-[#1D1D1F] border border-[#E5E5EA] hover:border-[#1D1D1F] rounded-2xl p-5 sm:p-6 text-center transition-all duration-300 ease-out hover:scale-[1.025] hover:shadow-xl cursor-pointer">
+                            <h4 class="text-base sm:text-lg font-bold tracking-tight text-brand-graphite group-hover:text-white transition-colors duration-200">
+                                05 — RETAIL OPERATIONS
+                            </h4>
+                            <p class="max-h-0 opacity-0 overflow-hidden group-hover:max-h-24 group-hover:opacity-100 group-hover:mt-2 text-sm text-brand-gray group-hover:text-brand-lightGray transition-all duration-300 ease-out font-medium">
+                                Inventory • POS • Marketing • Customer Assistance
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Layer 6 -->
+                    <div class="w-full layer-card" data-layer="6">
+                        <div class="group w-full bg-[#F5F5F7] hover:bg-[#1D1D1F] border border-[#E5E5EA] hover:border-[#1D1D1F] rounded-2xl p-5 sm:p-6 text-center transition-all duration-300 ease-out hover:scale-[1.025] hover:shadow-xl cursor-pointer">
+                            <h4 class="text-base sm:text-lg font-bold tracking-tight text-brand-graphite group-hover:text-white transition-colors duration-200">
+                                06 — OPTIONAL CLOUD
+                            </h4>
+                            <p class="max-h-0 opacity-0 overflow-hidden group-hover:max-h-24 group-hover:opacity-100 group-hover:mt-2 text-sm text-brand-gray group-hover:text-brand-lightGray transition-all duration-300 ease-out font-medium">
+                                Multi-store Synchronization • Centralized Analytics
+                            </p>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -800,6 +806,6 @@
     <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
     
     <!-- Main JS -->
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}" onerror="this.onerror=null; this.src='/public/static/js/main.js';"></script>
 </body>
 </html>

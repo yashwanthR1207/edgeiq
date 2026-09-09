@@ -27,6 +27,18 @@ def serve_public(filename):
 def serve_api_public(filename):
     return send_from_directory(PUBLIC_DIR, filename)
 
+@app.route('/overview_hd/<path:filename>')
+def serve_overview_hd(filename):
+    return send_from_directory(os.path.join(PUBLIC_DIR, 'overview_hd'), filename)
+
+@app.route('/overview/<path:filename>')
+def serve_overview(filename):
+    return send_from_directory(os.path.join(PUBLIC_DIR, 'overview'), filename)
+
+@app.route('/images/<path:filename>')
+def serve_images(filename):
+    return send_from_directory(os.path.join(STATIC_DIR, 'images'), filename)
+
 # Catch-all route ensures root, /api, /api/index, /api/index.py, and any subpath all render the site
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')

@@ -1,7 +1,16 @@
 {
+  "functions": {
+    "api/index.py": {
+      "includeFiles": "{templates,static,public}/**"
+    }
+  },
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/public/(.*)",
+      "destination": "/$1"
+    },
+    {
+      "source": "/((?!static|overview|overview_hd|section|images|css|js|favicon.ico|logo.png).*)",
       "destination": "/api/index.py"
     }
   ]

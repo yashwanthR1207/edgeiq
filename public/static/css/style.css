@@ -1,0 +1,40 @@
+/* Lenis smooth scrolling base styles */
+html.lenis {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* Custom specific styles */
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.cv-box {
+    transition: all 0.3s ease;
+}
+
+.cv-box:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+/* Hide scrollbar for cleaner look */
+::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+}
